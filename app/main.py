@@ -296,39 +296,52 @@ if start_research:
                     current_role = None
                     if hasattr(step, 'agent'):
                         agent_obj = step.agent
-                        # Si es un objeto de tipo Agent, accedemos a su .role
                         if hasattr(agent_obj, 'role'):
                             current_role = agent_obj.role
                         else:
                             current_role = str(agent_obj)
                     
-                    # Si no se detectó rol, intentar buscarlo en el texto del step (fallback)
+                    # Heurística para Hierarchical Process: Si el rol es 'None' o Manager,
+                    # intentamos detectar si se refiere a un agente específico en el pensamiento.
+                    thought_text = getattr(step, 'thought', '').lower()
                     found_role_key = None
-                    if current_role:
+
+                    # Primero buscar coincidencia exacta en current_role
+                    if current_role and str(current_role) != "None":
                         for role_key in ROLE_MAP:
-                            if role_key.lower() in current_role.lower():
+                            if role_key.lower() in str(current_role).lower():
                                 found_role_key = role_key
                                 break
                     
-                    # Actualizar UI si encontramos un rol válido
-                    if found_role_key:
-                        render_agent_flow(found_role_key)
+                    # Si no hay match, buscar pistas en el pensamiento (especialmente para el Manager delegando)
+                    if not found_role_key and thought_text:
+                        if "researcher" in thought_text or "investigador" in thought_text or "searching" in thought_text:
+                            found_role_key = "Senior Research Assistant"
+                        elif "analyst" in thought_text or "analista" in thought_text or "trends" in thought_text:
+                            found_role_key = "Tech Strategy Analyst"
+                        elif "writer" in thought_text or "escritor" in thought_text or "report" in thought_text:
+                            found_role_key = "Senior Technical Writer"
+                        elif "critic" in thought_text or "critico" in thought_text or "review" in thought_text:
+                            found_role_key = "Editorial Critic"
+                    
+                    # Si seguimos sin nada, por defecto es el Coordinador (Manager)
+                    if not found_role_key:
+                        found_role_key = "Research Project Coordinator"
+
+                    # Actualizar UI
+                    render_agent_flow(found_role_key)
                     
                     # Escribir el pensamiento actual en el log
                     if hasattr(step, 'thought') and step.thought:
-                        # Usar el nombre corto para el log para mayor limpieza
-                        display_name = "Agente"
-                        if found_role_key:
-                            # Buscar el nombre bonito en la lista de agentes
-                            agent_names = {
-                                "Research Project Coordinator": "Coordinador", 
-                                "Senior Research Assistant": "Investigador", 
-                                "Tech Strategy Analyst": "Analista", 
-                                "Senior Technical Writer": "Escritor", 
-                                "Editorial Critic": "Critico"
-                            }
-                            display_name = agent_names.get(found_role_key, found_role_key)
-                        
+                        # Buscar el nombre bonito
+                        agent_names = {
+                            "Research Project Coordinator": "Coordinador", 
+                            "Senior Research Assistant": "Investigador", 
+                            "Tech Strategy Analyst": "Analista", 
+                            "Senior Technical Writer": "Escritor", 
+                            "Editorial Critic": "Critico"
+                        }
+                        display_name = agent_names.get(found_role_key, "Agente")
                         status.write(f"💭 **{display_name}**: {step.thought[:150]}...")
                 
                 # Inicializar Crew
