@@ -99,7 +99,14 @@ with st.sidebar:
     st.markdown("### 🛠️ Estado del Sistema")
     try:
         config.validate()
-        st.success("API Keys: Conectadas")
+        st.success("API Keys: Detectadas")
+        
+        # Diagnóstico de llaves (enmascaradas)
+        with st.expander("Ver diagnóstico"):
+            def mask(s): return f"{s[:4]}...{s[-4:]}" if s and len(s) > 8 else "No detectada"
+            st.write(f"OpenAI: {mask(config.OPENAI_API_KEY)}")
+            st.write(f"SerpApi: {mask(config.SERPAPI_KEY)}")
+            
     except Exception as e:
         st.error(f"Error: {str(e)}")
     

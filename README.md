@@ -44,7 +44,8 @@ Plataforma SaaS de investigación de mercado impulsada por agentes de Inteligenc
 Para desplegar en **Streamlit Cloud**:
 1. Sube este código a GitHub.
 2. Conecta tu repo en [share.streamlit.io](https://share.streamlit.io).
-3. Configura los **Secrets** con las mismas variables del `.env`.
+3. **Main file path:** `app/main.py`
+4. Configura los **Secrets** con las mismas variables del `.env`.
 
 ## 📄 Licencia
 MIT
