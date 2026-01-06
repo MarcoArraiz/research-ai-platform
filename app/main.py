@@ -51,6 +51,39 @@ st.markdown("""
         background-color: rgba(255, 255, 255, 0.05);
         margin-top: 2rem;
     }
+    .agent-card {
+        text-align: center;
+        padding: 10px;
+        border-radius: 10px;
+        transition: all 0.5s ease;
+        filter: grayscale(100%);
+        opacity: 0.5;
+    }
+    .agent-active {
+        filter: grayscale(0%);
+        opacity: 1;
+        transform: scale(1.1);
+        border: 2px solid #1E88E5;
+        box-shadow: 0 0 15px rgba(30, 136, 229, 0.4);
+        background-color: rgba(30, 136, 229, 0.1);
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0px rgba(30, 136, 229, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(30, 136, 229, 0); }
+        100% { box-shadow: 0 0 0 0px rgba(30, 136, 229, 0); }
+    }
+    .agent-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-bottom: 5px;
+        object-fit: cover;
+    }
+    .agent-name {
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -185,14 +218,80 @@ if start_research:
     if not topic:
         st.warning("Por favor, ingresa un tema.")
     else:
+        # Contenedor para la visualización de agentes
+        agent_flow_placeholder = st.empty()
+        
+        def render_agent_flow(active_agent_role=None):
+            agents = [
+                {"role": "Research Project Coordinator", "name": "Coordinador", "img": "app/assets/agents/coordinator.png"},
+                {"role": "Senior Research Assistant", "name": "Investigador", "img": "app/assets/agents/researcher.png"},
+                {"role": "Tech Strategy Analyst", "name": "Analista", "img": "app/assets/agents/analyst.png"},
+                {"role": "Senior Technical Writer", "name": "Escritor", "img": "app/assets/agents/writer.png"},
+                {"role": "Quality Assurance Critic", "name": "Critico", "img": "app/assets/agents/critic.png"}
+            ]
+            
+            with agent_flow_placeholder.container():
+                cols = st.columns(len(agents))
+                for i, agent in enumerate(agents):
+                    is_active = active_agent_role == agent["role"]
+                    active_class = "agent-active" if is_active else ""
+                    
+                    with cols[i]:
+                        # Si no existe la imagen, usamos un placeholder
+                        img_path = agent["img"] if os.path.exists(agent["img"]) else "https://via.placeholder.com/80"
+                        
+                        st.markdown(f"""
+                        <div class="agent-card {active_class}">
+                            <img src="data:image/png;base64,{get_image_base64(img_path)}" class="agent-img">
+                            <div class="agent-name">{agent["name"]}</div>
+                            { "🔵 working..." if is_active else "" }
+                        </div>
+                        """, unsafe_allow_html=True)
+
+        def get_image_base64(path):
+            import base64
+            if path.startswith("http"): return ""
+            try:
+                with open(path, "rb") as f:
+                    return base64.b64encode(f.read()).decode()
+            except: return ""
+
+        # Inicializar el flujo con el coordinador
+        render_agent_flow("Research Project Coordinator")
+
         with st.status("🛠️ Agentes trabajando en la investigación...", expanded=True) as status:
             try:
+                # Callback para actualizar la UI cuando cambie el agente
+                def task_callback(task_output):
+                    # Al terminar una tarea, pasamos al siguiente agente lógico
+                    # 1. Researcher -> 2. Analyst -> 3. Writer -> 4. Critic
+                    current_agent = getattr(task_output, 'agent', '')
+                    if "Researcher" in current_agent or "researcher" in current_agent.lower():
+                        render_agent_flow("Tech Strategy Analyst")
+                        status.write("📊 El Investigador terminó. Pasando datos al Analista...")
+                    elif "Analyst" in current_agent or "analyst" in current_agent.lower():
+                        render_agent_flow("Senior Technical Writer")
+                        status.write("✍️ El Analista terminó. El Escritor está redactando el reporte...")
+                    elif "Writer" in current_agent or "writer" in current_agent.lower():
+                        render_agent_flow("Quality Assurance Critic")
+                        status.write("🔍 El Escritor terminó. El Crítico está revisando el contenido...")
+                
                 # Inicializar Crew
                 crew = ResearchCrew(topic=topic)
                 
-                st.write("🕵️ El equipo de agentes está analizando fuentes y redactando...")
-                result = crew.run()
+                status.write("🕵️ El Coordinador está organizando el equipo...")
+                render_agent_flow("Research Project Coordinator")
                 
+                # Simulamos el inicio de la primera tarea real (Researcher)
+                # ya que el primer callback ocurrirá solo al terminar.
+                import time
+                time.sleep(1)
+                render_agent_flow("Senior Research Assistant")
+                status.write("🌐 El Investigador está buscando información en la web...")
+                
+                result = crew.run(task_callback=task_callback)
+                
+                render_agent_flow(None) # Limpiar al terminar
                 status.update(label="✅ Investigación completada!", state="complete", expanded=False)
                 
                 # Convertir resultado a string
