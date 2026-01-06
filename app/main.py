@@ -143,9 +143,9 @@ if start_research:
                 crew = ResearchCrew(topic=topic)
                 
                 st.write("🕵️ Researcher buscando fuentes...")
-                # Aquí podrías captar stdout si quisieras mostrar logs en tiempo real, 
-                # pero para MVP el kickoff directo es más estable.
+                print("DEBUG: Llamando a crew.run()...")
                 result = crew.run()
+                print("DEBUG: crew.run() completado exitosamente.")
                 
                 status.update(label="✅ Investigación completada!", state="complete", expanded=False)
                 
