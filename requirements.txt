@@ -7,3 +7,5 @@ requests
 beautifulsoup4
 google-search-results
 pydantic
+crewai-tools
+serpapi
