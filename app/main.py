@@ -209,7 +209,11 @@ if start_research:
                 st.session_state["current_report"] = report_content
                 st.session_state["current_topic"] = topic
                 
-# Mostrar Reporte si existe
+            except Exception as e:
+                status.update(label="❌ Error durante la investigación", state="error")
+                st.error(f"Ocurrió un error: {str(e)}")
+
+# Mostrar Reporte si existe (Fuera de los bloques de procesamiento para persistencia)
 if "current_report" in st.session_state:
     report_content = st.session_state["current_report"]
     topic_rendered = st.session_state.get("current_topic", "Reporte")
@@ -226,10 +230,6 @@ if "current_report" in st.session_state:
         file_name=f"reporte_{topic_rendered.lower().replace(' ', '_')}.md",
         mime="text/markdown"
     )
-                
-            except Exception as e:
-                status.update(label="❌ Error durante la investigación", state="error")
-                st.error(f"Ocurrió un error: {str(e)}")
 
 # Footer
 st.markdown("---")
