@@ -1,13 +1,18 @@
-import streamlit as st
 import os
+
+# CRITICAL: Disable telemetry BEFORE importing any crewai modules to avoid signal error in Streamlit threads
+os.environ["OTEL_SDK_DISABLED"] = "true"
+os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "true"
+
+import streamlit as st
 import sys
 from datetime import datetime
 
 # Añadir el directorio raíz al path para poder importar src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.crew.research_crew import ResearchCrew
 from src.utils.config import config
+from src.crew.research_crew import ResearchCrew
 
 # Configuración de la página
 st.set_page_config(
