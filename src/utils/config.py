@@ -11,8 +11,6 @@ os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "true"
 os.environ["TELEMETRY_ENABLED"] = "false"
 os.environ["ANONYMIZED_TELEMETRY"] = "false"
 
-print("DEBUG: Configuración cargada y telemetría desactivada.")
-
 class Config:
     """Clase centralizada para manejar la configuración y API Keys."""
     

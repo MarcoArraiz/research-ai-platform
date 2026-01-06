@@ -11,9 +11,7 @@ class ResearchCrew:
         self.search_tool = create_search_tool()
         
     def run(self):
-        print(f"DEBUG: ResearchCrew.run() iniciado para tema: {self.topic}")
         # 1. Initialize Agents
-        print("DEBUG: Inicializando agentes...")
         search_tools = [self.search_tool] if self.search_tool else []
         researcher = create_researcher_agent(search_tools)
         analyst = create_analyst_agent()
