@@ -3,7 +3,9 @@ from src.agents.researcher import create_researcher_agent
 from src.agents.analyst import create_analyst_agent
 from src.agents.writer import create_writer_agent
 from src.agents.critic import create_critic_agent
+from src.agents.coordinator import create_coordinator_agent
 from src.tools.web_search import create_search_tool
+from src.tools.web_scraper import web_scraper
 
 class ResearchCrew:
     def __init__(self, topic):
@@ -12,11 +14,12 @@ class ResearchCrew:
         
     def run(self):
         # 1. Initialize Agents
-        search_tools = [self.search_tool] if self.search_tool else []
+        search_tools = [self.search_tool, web_scraper] if self.search_tool else [web_scraper]
         researcher = create_researcher_agent(search_tools)
         analyst = create_analyst_agent()
         writer = create_writer_agent()
         critic = create_critic_agent()
+        coordinator = create_coordinator_agent()
 
         # 2. Define Tasks
         research_task = Task(
@@ -47,7 +50,8 @@ class ResearchCrew:
         crew = Crew(
             agents=[researcher, analyst, writer, critic],
             tasks=[research_task, analysis_task, writing_task, review_task],
-            process=Process.sequential,
+            process=Process.hierarchical,
+            manager_agent=coordinator,
             verbose=True
         )
 
