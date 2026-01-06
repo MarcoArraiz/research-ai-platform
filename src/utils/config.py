@@ -1,3 +1,7 @@
+import os
+import streamlit as st
+from dotenv import load_dotenv
+
 # Cargar variables de entorno del archivo .env (local)
 load_dotenv()
 
