@@ -15,6 +15,8 @@ from src.utils.config import config
 from src.crew.research_crew import ResearchCrew
 from src.database.auth import AuthService
 from src.database.repository import ResearchRepository
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
+import threading
 
 # Configuración de la página
 st.set_page_config(
@@ -221,6 +223,33 @@ if start_research:
         # Contenedor para la visualización de agentes
         agent_flow_placeholder = st.empty()
         
+        # 1. Definir los roles exactos para el mapeo
+        ROLE_MAP = {
+            "Research Project Coordinator": "Research Project Coordinator",
+            "Senior Research Assistant": "Senior Research Assistant",
+            "Tech Strategy Analyst": "Tech Strategy Analyst",
+            "Senior Technical Writer": "Senior Technical Writer",
+            "Quality Assurance Critic": "Quality Assurance Critic"
+        }
+
+        # Cache de imágenes base64 para evitar lecturas de disco repetidas
+        if "agent_images" not in st.session_state:
+            st.session_state["agent_images"] = {}
+        
+        def get_cached_image_base64(path):
+            if path in st.session_state["agent_images"]:
+                return st.session_state["agent_images"][path]
+            import base64
+            try:
+                if os.path.exists(path):
+                    with open(path, "rb") as f:
+                        b64 = base64.b64encode(f.read()).decode()
+                        st.session_state["agent_images"][path] = b64
+                        return b64
+            except: pass
+            return ""
+
+        # Redefinir render_agent_flow para usar el cache
         def render_agent_flow(active_agent_role=None):
             agents = [
                 {"role": "Research Project Coordinator", "name": "Coordinador", "img": "app/assets/agents/coordinator.png"},
@@ -235,61 +264,66 @@ if start_research:
                 for i, agent in enumerate(agents):
                     is_active = active_agent_role == agent["role"]
                     active_class = "agent-active" if is_active else ""
-                    
                     with cols[i]:
-                        # Si no existe la imagen, usamos un placeholder
-                        img_path = agent["img"] if os.path.exists(agent["img"]) else "https://via.placeholder.com/80"
-                        
+                        b64 = get_cached_image_base64(agent["img"])
                         st.markdown(f"""
                         <div class="agent-card {active_class}">
-                            <img src="data:image/png;base64,{get_image_base64(img_path)}" class="agent-img">
+                            <img src="data:image/png;base64,{b64}" class="agent-img">
                             <div class="agent-name">{agent["name"]}</div>
                             { "🔵 working..." if is_active else "" }
                         </div>
                         """, unsafe_allow_html=True)
-
-        def get_image_base64(path):
-            import base64
-            if path.startswith("http"): return ""
-            try:
-                with open(path, "rb") as f:
-                    return base64.b64encode(f.read()).decode()
-            except: return ""
 
         # Inicializar el flujo con el coordinador
         render_agent_flow("Research Project Coordinator")
 
         with st.status("🛠️ Agentes trabajando en la investigación...", expanded=True) as status:
             try:
-                # Callback para actualizar la UI cuando cambie el agente
+                # 1. Definir los roles exactos para el mapeo
+                ROLE_MAP = {
+                    "Research Project Coordinator": "Research Project Coordinator",
+                    "Senior Research Assistant": "Senior Research Assistant",
+                    "Tech Strategy Analyst": "Tech Strategy Analyst",
+                    "Senior Technical Writer": "Senior Technical Writer",
+                    "Quality Assurance Critic": "Quality Assurance Critic"
+                }
+
+                # 2. Callback de Tarea (al finalizar cada tarea principal)
                 def task_callback(task_output):
-                    # Al terminar una tarea, pasamos al siguiente agente lógico
-                    # 1. Researcher -> 2. Analyst -> 3. Writer -> 4. Critic
-                    current_agent = getattr(task_output, 'agent', '')
-                    if "Researcher" in current_agent or "researcher" in current_agent.lower():
-                        render_agent_flow("Tech Strategy Analyst")
-                        status.write("📊 El Investigador terminó. Pasando datos al Analista...")
-                    elif "Analyst" in current_agent or "analyst" in current_agent.lower():
-                        render_agent_flow("Senior Technical Writer")
-                        status.write("✍️ El Analista terminó. El Escritor está redactando el reporte...")
-                    elif "Writer" in current_agent or "writer" in current_agent.lower():
-                        render_agent_flow("Quality Assurance Critic")
-                        status.write("🔍 El Escritor terminó. El Crítico está revisando el contenido...")
+                    pass # Ya manejaremos la transición fina con step_callback
+
+                # Asegurar que los callbacks tengan el contexto de Streamlit si CrewAI usa hilos
+                st_ctx = get_script_run_ctx()
+
+                # 3. Callback de paso (granual, cada vez que un agente piensa o actúa)
+                def step_callback(step):
+                    # Vincular el hilo actual al contexto de Streamlit del usuario
+                    if st_ctx:
+                        add_script_run_ctx(threading.current_thread(), st_ctx)
+                    
+                    # Intentar extraer el rol del agente del objeto step
+                    agent_role = None
+                    if hasattr(step, 'agent'):
+                        agent_role = str(step.agent)
+                    
+                    # Limpiar el nombre del rol si viene con metadatos de CrewAI
+                    for role_key in ROLE_MAP:
+                        if role_key in str(agent_role):
+                            render_agent_flow(role_key)
+                            break
+                    
+                    # Opcional: Escribir el pensamiento actual en el log
+                    if hasattr(step, 'thought') and step.thought:
+                        status.write(f"💭 **{agent_role}**: {step.thought[:100]}...")
                 
                 # Inicializar Crew
                 crew = ResearchCrew(topic=topic)
                 
-                status.write("🕵️ El Coordinador está organizando el equipo...")
+                status.write("🕵️ El Coordinador está iniciando el proceso jerárquico...")
                 render_agent_flow("Research Project Coordinator")
                 
-                # Simulamos el inicio de la primera tarea real (Researcher)
-                # ya que el primer callback ocurrirá solo al terminar.
-                import time
-                time.sleep(1)
-                render_agent_flow("Senior Research Assistant")
-                status.write("🌐 El Investigador está buscando información en la web...")
-                
-                result = crew.run(task_callback=task_callback)
+                # Ejecutar investigación con ambos callbacks
+                result = crew.run(task_callback=task_callback, step_callback=step_callback)
                 
                 render_agent_flow(None) # Limpiar al terminar
                 status.update(label="✅ Investigación completada!", state="complete", expanded=False)

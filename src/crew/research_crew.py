@@ -12,7 +12,7 @@ class ResearchCrew:
         self.topic = topic
         self.search_tool = create_search_tool()
         
-    def run(self, task_callback=None):
+    def run(self, task_callback=None, step_callback=None):
         # 1. Initialize Agents
         search_tools = [self.search_tool, web_scraper] if self.search_tool else [web_scraper]
         researcher = create_researcher_agent(search_tools)
@@ -56,6 +56,7 @@ class ResearchCrew:
             tasks=[research_task, analysis_task, writing_task, review_task],
             process=Process.hierarchical,
             manager_agent=coordinator,
+            step_callback=step_callback,
             verbose=True
         )
 
