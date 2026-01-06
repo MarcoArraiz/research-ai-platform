@@ -13,6 +13,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.utils.config import config
 from src.crew.research_crew import ResearchCrew
+from src.database.auth import AuthService
+from src.database.repository import ResearchRepository
 
 # Configuración de la página
 st.set_page_config(
@@ -116,11 +118,55 @@ with st.sidebar:
         st.error(f"Error: {str(e)}")
     
     st.markdown("---")
-    st.markdown("### 📂 Historial Reciente")
-    if os.path.exists("data/outputs"):
-        files = sorted(os.listdir("data/outputs"), reverse=True)[:5]
-        for f in files:
-            st.code(f, language="")
+    st.markdown("### 👤 Cuenta de Usuario")
+    
+    if "user" not in st.session_state:
+        tab1, tab2 = st.tabs(["Login", "Registro"])
+        
+        with tab1:
+            login_email = st.text_input("Email", key="login_email")
+            login_pass = st.text_input("Contraseña", type="password", key="login_pass")
+            if st.button("Entrar", key="btn_login"):
+                res = AuthService.sign_in(login_email, login_pass)
+                if res["error"]:
+                    st.error(res["error"])
+                else:
+                    st.session_state["user"] = res["user"]
+                    st.success("¡Bienvenido!")
+                    st.rerun()
+                    
+        with tab2:
+            reg_name = st.text_input("Nombre", key="reg_name")
+            reg_email = st.text_input("Email", key="reg_email")
+            reg_pass = st.text_input("Contraseña", type="password", key="reg_pass")
+            if st.button("Registrarse", key="btn_reg"):
+                res = AuthService.sign_up(reg_email, reg_pass, reg_name)
+                if res["error"]:
+                    st.error(res["error"])
+                else:
+                    st.success("Cuenta creada. Ya puedes iniciar sesión.")
+    else:
+        user = st.session_state["user"]
+        st.write(f"Conectado como: **{user.email}**")
+        if st.button("Cerrar Sesión"):
+            AuthService.sign_out()
+            st.rerun()
+
+    st.markdown("---")
+    st.markdown("### 📂 Historial en la Nube")
+    if "user" in st.session_state:
+        history = ResearchRepository.get_user_history(st.session_state["user"].id)
+        if history:
+            for item in history[:5]:
+                with st.expander(f"📌 {item['topic'][:30]}..."):
+                    st.caption(f"Fecha: {item['created_at'][:10]}")
+                    if st.button("Cargar Reporte", key=f"load_{item['id']}"):
+                        st.session_state["current_report"] = item['result']
+                        st.session_state["current_topic"] = item['topic']
+        else:
+            st.info("No hay investigaciones guardadas.")
+    else:
+        st.warning("Inicia sesión para ver tu historial.")
 
 # Main UI
 st.title("🔍 Research AI Platform")
@@ -147,27 +193,39 @@ if start_research:
                 
                 status.update(label="✅ Investigación completada!", state="complete", expanded=False)
                 
-                # Convertir resultado a string (CrewAI suele devolver un objeto CrewOutput)
+                # Convertir resultado a string
                 report_content = str(result)
                 
-                # Guardar automáticamente (Recomendación del sistema)
+                # Persistencia en Supabase si el usuario está logueado
+                if "user" in st.session_state:
+                    ResearchRepository.save_research(st.session_state["user"].id, topic, report_content)
+                    st.toast("✅ Reporte guardado en la nube")
+                
+                # Guardar localmente
                 saved_path = save_report(topic, report_content)
                 st.toast(f"Reporte guardado en {saved_path}")
                 
-                # Mostrar Reporte
-                st.markdown("---")
-                st.header("📄 Reporte Generado")
-                st.markdown(f"<div class='report-container'>", unsafe_allow_html=True)
-                st.markdown(report_content)
-                st.markdown("</div>", unsafe_allow_html=True)
+                # Almacenar en session_state para persistencia de la interfaz
+                st.session_state["current_report"] = report_content
+                st.session_state["current_topic"] = topic
                 
-                # Botón de Descarga
-                st.download_button(
-                    label="📥 Descargar Reporte (Markdown)",
-                    data=report_content,
-                    file_name=f"reporte_{topic.lower().replace(' ', '_')}.md",
-                    mime="text/markdown"
-                )
+# Mostrar Reporte si existe
+if "current_report" in st.session_state:
+    report_content = st.session_state["current_report"]
+    topic_rendered = st.session_state.get("current_topic", "Reporte")
+    
+    st.markdown("---")
+    st.header(f"📄 Reporte: {topic_rendered}")
+    st.markdown(f"<div class='report-container'>", unsafe_allow_html=True)
+    st.markdown(report_content)
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.download_button(
+        label="📥 Descargar Reporte (Markdown)",
+        data=report_content,
+        file_name=f"reporte_{topic_rendered.lower().replace(' ', '_')}.md",
+        mime="text/markdown"
+    )
                 
             except Exception as e:
                 status.update(label="❌ Error durante la investigación", state="error")
