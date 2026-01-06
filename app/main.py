@@ -306,25 +306,38 @@ if start_research:
                     thought_text = getattr(step, 'thought', '').lower()
                     found_role_key = None
 
-                    # Primero buscar coincidencia exacta en current_role
+                    # Primero buscar coincidencia en el rol (más flexible)
                     if current_role and str(current_role) != "None":
-                        for role_key in ROLE_MAP:
-                            if role_key.lower() in str(current_role).lower():
-                                found_role_key = role_key
-                                break
-                    
-                    # Si no hay match, buscar pistas en el pensamiento (especialmente para el Manager delegando)
-                    if not found_role_key and thought_text:
-                        if "researcher" in thought_text or "investigador" in thought_text or "searching" in thought_text:
+                        role_str = str(current_role).lower()
+                        if "research" in role_str or "investigador" in role_str:
                             found_role_key = "Senior Research Assistant"
-                        elif "analyst" in thought_text or "analista" in thought_text or "trends" in thought_text:
+                        elif "analyst" in role_str or "analista" in role_str:
                             found_role_key = "Tech Strategy Analyst"
-                        elif "writer" in thought_text or "escritor" in thought_text or "report" in thought_text:
+                        elif "writer" in role_str or "escritor" in role_str or "writing" in role_str:
                             found_role_key = "Senior Technical Writer"
-                        elif "critic" in thought_text or "critico" in thought_text or "review" in thought_text:
+                        elif "critic" in role_str or "critico" in role_str:
+                            found_role_key = "Editorial Critic"
+                        elif "coordinator" in role_str or "manager" in role_str:
+                            found_role_key = "Research Project Coordinator"
+                    
+                    # Si no hay match claro en el rol, buscar pistas profundas en el pensamiento
+                    if not found_role_key and thought_text:
+                        # Palabras clave expandidas por rol
+                        research_keywords = ["research", "investiga", "search", "google", "scrap", "buscando", "source", "recolect"]
+                        analysis_keywords = ["analy", "analista", "trend", "tendencia", "impact", "strategic", "risk", "oppor"]
+                        writing_keywords = ["writ", "escritor", "report", "draft", "markdown", "documento", "summary"]
+                        critic_keywords = ["critic", "critico", "review", "edit", "feedback", "corrig", "finaliz"]
+                        
+                        if any(k in thought_text for k in research_keywords):
+                            found_role_key = "Senior Research Assistant"
+                        elif any(k in thought_text for k in analysis_keywords):
+                            found_role_key = "Tech Strategy Analyst"
+                        elif any(k in thought_text for k in writing_keywords):
+                            found_role_key = "Senior Technical Writer"
+                        elif any(k in thought_text for k in critic_keywords):
                             found_role_key = "Editorial Critic"
                     
-                    # Si seguimos sin nada, por defecto es el Coordinador (Manager)
+                    # Si seguimos sin nada o es el manager orquestando, por defecto es el Coordinador
                     if not found_role_key:
                         found_role_key = "Research Project Coordinator"
 
