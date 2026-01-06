@@ -5,12 +5,17 @@ from src.utils.config import config
 def create_search_tool():
     """
     Crea y retorna una herramienta de búsqueda web.
-    Utiliza SerpApiGoogleSearchTool si SERPAPI_KEY está configurada.
     """
+    print("DEBUG: Creando herramienta de búsqueda (SerpApi)...")
     if config.SERPAPI_KEY:
-        # SerpApiGoogleSearchTool espera la key en os.environ["SERPAPI_API_KEY"]
-        os.environ["SERPAPI_API_KEY"] = config.SERPAPI_KEY
-        return SerpApiGoogleSearchTool()
+        try:
+            os.environ["SERPAPI_API_KEY"] = config.SERPAPI_KEY
+            tool = SerpApiGoogleSearchTool()
+            print("DEBUG: Herramienta de búsqueda creada exitosamente.")
+            return tool
+        except Exception as e:
+            print(f"DEBUG ERROR: Falló la creación de la herramienta: {str(e)}")
+            return None
     else:
-        print("Advertencia: SERPAPI_KEY no configurada. Las herramientas de búsqueda podrían no funcionar.")
+        print("DEBUG: No se encontró SERPAPI_KEY.")
         return None

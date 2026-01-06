@@ -139,14 +139,19 @@ if start_research:
     else:
         with st.status("🛠️ Agentes trabajando en la investigación...", expanded=True) as status:
             try:
-                # Inicializar Crew
+                st.write("📡 1/4: Verificando Configuración...")
+                print("DEBUG: Validando config...")
+                config.validate()
+                
+                st.write("🤖 2/4: Inicializando Equipo de Agentes...")
+                print("DEBUG: Creando ResearchCrew...")
                 crew = ResearchCrew(topic=topic)
                 
-                st.write("🕵️ Researcher buscando fuentes...")
+                st.write("🕵️ 3/4: Agente Senior de Investigación buscando fuentes...")
                 print("DEBUG: Llamando a crew.run()...")
                 result = crew.run()
                 print("DEBUG: crew.run() completado exitosamente.")
-                
+                st.write("📊 4/4: Finalizando reporte...")
                 status.update(label="✅ Investigación completada!", state="complete", expanded=False)
                 
                 # Convertir resultado a string (CrewAI suele devolver un objeto CrewOutput)

@@ -1,13 +1,13 @@
-import os
-import streamlit as st
-from dotenv import load_dotenv
-
 # Cargar variables de entorno del archivo .env (local)
 load_dotenv()
 
-# Desactivar Telemetría para evitar errores de hilos en Streamlit Cloud
+# Desactivar Telemetría de todas las formas posibles antes de cargarCrewAI
 os.environ["OTEL_SDK_DISABLED"] = "true"
 os.environ["CREWAI_TELEMETRY_OPT_OUT"] = "true"
+os.environ["TELEMETRY_ENABLED"] = "false"
+os.environ["ANONYMIZED_TELEMETRY"] = "false"
+
+print("DEBUG: Configuración cargada y telemetría desactivada.")
 
 class Config:
     """Clase centralizada para manejar la configuración y API Keys."""
