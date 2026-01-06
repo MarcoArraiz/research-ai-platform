@@ -223,13 +223,13 @@ if start_research:
         # Contenedor para la visualización de agentes
         agent_flow_placeholder = st.empty()
         
-        # 1. Definir los roles exactos para el mapeo
+        # 1. Definir los roles exactos para el mapeo (deben coincidir con src/agents/*.py)
         ROLE_MAP = {
             "Research Project Coordinator": "Research Project Coordinator",
             "Senior Research Assistant": "Senior Research Assistant",
             "Tech Strategy Analyst": "Tech Strategy Analyst",
             "Senior Technical Writer": "Senior Technical Writer",
-            "Quality Assurance Critic": "Quality Assurance Critic"
+            "Editorial Critic": "Editorial Critic"
         }
 
         # Cache de imágenes base64 para evitar lecturas de disco repetidas
@@ -249,14 +249,14 @@ if start_research:
             except: pass
             return ""
 
-        # Redefinir render_agent_flow para usar el cache
+        # Redefinir render_agent_flow para usar el cache y roles actualizados
         def render_agent_flow(active_agent_role=None):
             agents = [
                 {"role": "Research Project Coordinator", "name": "Coordinador", "img": "app/assets/agents/coordinator.png"},
                 {"role": "Senior Research Assistant", "name": "Investigador", "img": "app/assets/agents/researcher.png"},
                 {"role": "Tech Strategy Analyst", "name": "Analista", "img": "app/assets/agents/analyst.png"},
                 {"role": "Senior Technical Writer", "name": "Escritor", "img": "app/assets/agents/writer.png"},
-                {"role": "Quality Assurance Critic", "name": "Critico", "img": "app/assets/agents/critic.png"}
+                {"role": "Editorial Critic", "name": "Critico", "img": "app/assets/agents/critic.png"}
             ]
             
             with agent_flow_placeholder.container():
@@ -279,18 +279,9 @@ if start_research:
 
         with st.status("🛠️ Agentes trabajando en la investigación...", expanded=True) as status:
             try:
-                # 1. Definir los roles exactos para el mapeo
-                ROLE_MAP = {
-                    "Research Project Coordinator": "Research Project Coordinator",
-                    "Senior Research Assistant": "Senior Research Assistant",
-                    "Tech Strategy Analyst": "Tech Strategy Analyst",
-                    "Senior Technical Writer": "Senior Technical Writer",
-                    "Quality Assurance Critic": "Quality Assurance Critic"
-                }
-
-                # 2. Callback de Tarea (al finalizar cada tarea principal)
+                # 1. Callback de Tarea (al finalizar cada tarea principal)
                 def task_callback(task_output):
-                    pass # Ya manejaremos la transición fina con step_callback
+                    pass # Seguimiento granual via step_callback
 
                 # Asegurar que los callbacks tengan el contexto de Streamlit si CrewAI usa hilos
                 st_ctx = get_script_run_ctx()
@@ -302,19 +293,43 @@ if start_research:
                         add_script_run_ctx(threading.current_thread(), st_ctx)
                     
                     # Intentar extraer el rol del agente del objeto step
-                    agent_role = None
+                    current_role = None
                     if hasattr(step, 'agent'):
-                        agent_role = str(step.agent)
+                        agent_obj = step.agent
+                        # Si es un objeto de tipo Agent, accedemos a su .role
+                        if hasattr(agent_obj, 'role'):
+                            current_role = agent_obj.role
+                        else:
+                            current_role = str(agent_obj)
                     
-                    # Limpiar el nombre del rol si viene con metadatos de CrewAI
-                    for role_key in ROLE_MAP:
-                        if role_key in str(agent_role):
-                            render_agent_flow(role_key)
-                            break
+                    # Si no se detectó rol, intentar buscarlo en el texto del step (fallback)
+                    found_role_key = None
+                    if current_role:
+                        for role_key in ROLE_MAP:
+                            if role_key.lower() in current_role.lower():
+                                found_role_key = role_key
+                                break
                     
-                    # Opcional: Escribir el pensamiento actual en el log
+                    # Actualizar UI si encontramos un rol válido
+                    if found_role_key:
+                        render_agent_flow(found_role_key)
+                    
+                    # Escribir el pensamiento actual en el log
                     if hasattr(step, 'thought') and step.thought:
-                        status.write(f"💭 **{agent_role}**: {step.thought[:100]}...")
+                        # Usar el nombre corto para el log para mayor limpieza
+                        display_name = "Agente"
+                        if found_role_key:
+                            # Buscar el nombre bonito en la lista de agentes
+                            agent_names = {
+                                "Research Project Coordinator": "Coordinador", 
+                                "Senior Research Assistant": "Investigador", 
+                                "Tech Strategy Analyst": "Analista", 
+                                "Senior Technical Writer": "Escritor", 
+                                "Editorial Critic": "Critico"
+                            }
+                            display_name = agent_names.get(found_role_key, found_role_key)
+                        
+                        status.write(f"💭 **{display_name}**: {step.thought[:150]}...")
                 
                 # Inicializar Crew
                 crew = ResearchCrew(topic=topic)
