@@ -16,10 +16,8 @@ class Config:
     
     def __init__(self):
         # Intentar cargar desde os.environ (.env o Streamlit Secrets)
-        self.OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-        # SerpApi puede venir con dos nombres comunes
-        self.SERPAPI_KEY = os.getenv("SERPAPI_KEY") or os.getenv("SERPAPI_API_KEY") or st.secrets.get("SERPAPI_KEY")
-        self.MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o")
+        self.SUPABASE_URL = os.getenv("SUPABASE_URL")
+        self.SUPABASE_KEY = os.getenv("SUPABASE_KEY")
         
         # Fallback para Streamlit Secrets si os.getenv no funciona en algunos entornos
         try:
@@ -29,6 +27,10 @@ class Config:
                 self.SERPAPI_KEY = st.secrets["SERPAPI_API_KEY"]
             if not self.SERPAPI_KEY and "SERPAPI_KEY" in st.secrets:
                 self.SERPAPI_KEY = st.secrets["SERPAPI_KEY"]
+            if not self.SUPABASE_URL and "SUPABASE_URL" in st.secrets:
+                self.SUPABASE_URL = st.secrets["SUPABASE_URL"]
+            if not self.SUPABASE_KEY and "SUPABASE_KEY" in st.secrets:
+                self.SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
         except:
             pass
         
