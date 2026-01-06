@@ -23,29 +23,29 @@ class ResearchCrew:
 
         # 2. Define Tasks
         research_task = Task(
-            description=f'Conduct a comprehensive research on {self.topic}. Find the latest news, key players, and technological breakthroughs.',
-            expected_output='A detailed collection of raw research data and sources.',
+            description=f'Coordinate with the Senior Research Assistant to conduct a comprehensive research on {self.topic}. Gather news, key players, and technological breakthroughs.',
+            expected_output='A raw collection of research data, facts, and sources provided by the researcher.',
             agent=researcher,
             callback=task_callback
         )
 
         analysis_task = Task(
-            description=f'Based on the research data, identify 5 key trends and their potential impact on the industry regarding {self.topic}.',
-            expected_output='A structured analysis identifying trends, risks, and opportunities.',
+            description=f'Direct the Tech Strategy Analyst to analyze the research data on {self.topic}. Identify 5 key trends and their industry impact.',
+            expected_output='A structured technical analysis identifying trends, risks, and opportunities.',
             agent=analyst,
             callback=task_callback
         )
 
         writing_task = Task(
-            description=f'Write a professional Markdown report about {self.topic} based on the analysis. Include an Executive Summary, Key Findings, and Conclusion.',
-            expected_output='A complete, well-formatted Markdown report.',
+            description=f'Manage the Senior Technical Writer to create a professional Markdown report about {self.topic}. Ensure it includes Executive Summary and Key Findings.',
+            expected_output='A complete, well-formatted Markdown report drafted by the writer.',
             agent=writer,
             callback=task_callback
         )
 
         review_task = Task(
-            description=f'Review the Markdown report for {self.topic}. Check for clarity, accuracy, and professional tone. Request changes if necessary.',
-            expected_output='The final, polished version of the report in Markdown.',
+            description=f'Supervise the Editorial Critic as they review the Markdown report for {self.topic}. Ensure accuracy, clarity, and professional tone.',
+            expected_output='The final, polished version of the report after a total editorial review.',
             agent=critic,
             callback=task_callback
         )
