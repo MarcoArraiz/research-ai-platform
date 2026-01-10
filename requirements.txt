@@ -9,3 +9,4 @@ google-search-results
 pydantic
 crewai-tools
 supabase
+libsass

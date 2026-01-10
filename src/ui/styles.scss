@@ -1,0 +1,121 @@
+// app/ui/styles.scss
+
+// --- Variables ---
+$primary-color: #000000;
+$secondary-color: #44aa24;
+$bg-color: #f0f2f6;
+$text-color: #1d1d1d;
+$font-stack: "Inter", sans-serif;
+
+// --- Mixins ---
+@mixin card-style {
+  background-color: $bg-color;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+html,
+body,
+[class*="css"] {
+  font-family: $font-stack !important;
+}
+
+.stApp {
+  header[data-testid="stHeader"] {
+    visibility: hidden;
+  }
+  footer {
+    visibility: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: $text-color !important;
+    font-weight: 800 !important;
+    font-family: $font-stack !important;
+  }
+
+  .agent-card {
+    @include card-style;
+    border-left: 5px solid $primary-color;
+    margin-bottom: 1rem;
+    h4 {
+      color: $secondary-color !important;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #4a4a4a;
+      margin-top: 0.5rem;
+    }
+  }
+  div[data-testid="stVerticalBlock"]
+    > div:first-child
+    div[data-testid="stButton"]
+    button {
+    width: auto !important; 
+    background-color: transparent !important;
+    color: $text-color !important;
+    border: 2px solid $primary-color !important;
+    font-size: 1.2rem;
+    padding: 0.2rem 0.8rem !important;
+
+    &:hover {
+      background-color: $primary-color !important;
+      color: white !important;
+    }
+  }
+  section[data-testid="stSidebar"] {
+        transform: none !important; 
+        min-width: 300px !important;
+        max-width: 350px !important; 
+        width: 300px !important;
+        visibility: visible !important;
+        background-color: $bg-color !important; 
+        z-index: 100 !important;
+        div[data-testid="stSidebarUserContent"] {
+            padding-top: 2rem; 
+        }
+    }
+    div[data-testid="stSidebarCollapseButton"]{
+        display: none !important;
+    }
+  div[data-testid="stButton"] > button {
+    width: 100%;
+    background-color: $primary-color !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 5px !important;
+    transition: all 0.3s ease;
+    font-weight: 600;
+
+    &:hover {
+      background-color: $secondary-color !important;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      color: white !important;
+      border-color: transparent !important;
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  div[data-testid="stTextInput"] {
+    label {
+      color: $primary-color !important;
+      font-weight: 600;
+    }
+    input {
+      border-radius: 5px;
+      &:focus {
+        border-color: $secondary-color !important;
+        box-shadow: 0 0 0 1px $secondary-color !important;
+      }
+    }
+  }
+}
