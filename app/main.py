@@ -41,52 +41,68 @@ def main():
     
     topic = st.text_input("Ingresa un tema para investigar:", placeholder="Ej: El futuro de la desalinización solar en 2026")
     col1, _ = st.columns([1, 4])
+    
+    # Initialize Executor
+    from src.utils.executor import ResearchExecutor
+    import time
+    executor = ResearchExecutor()
+
     with col1:
-        start_research = st.button("🚀 Iniciar Investigación", type="primary")
-    if start_research:
-        if not topic:
-            st.warning("Por favor, ingresa un tema.")
-            return
-        agent_flow_placeholder = st.empty()
-        components.render_agent_visuals(agent_flow_placeholder, "Research Project Coordinator")
+        start_research = st.button("🚀 Iniciar Investigación", type="primary", disabled=executor.is_running)
 
-        with st.status("🛠️ Agentes trabajando...", expanded=True) as status:
-            try:
-                st_ctx = get_script_run_ctx()
-                def step_callback(step):
-                    agent_logic.attach_thread_context(st_ctx)
-                    current_role = None
-                    if hasattr(step, 'agent'):
-                        current_role = getattr(step.agent, 'role', str(step.agent))
+    if start_research and topic:
+        st_ctx = get_script_run_ctx()
         
-                    role_key = agent_logic.detect_agent_role(step, current_role)
-
-                    components.render_agent_visuals(agent_flow_placeholder, role_key)
-                    
-                    if hasattr(step, 'thought') and step.thought:
-                        display_name = agent_logic.get_agent_display_name(role_key)
-                        status.write(f"💭 **{display_name}**: {step.thought[:150]}...")
-
-                crew = ResearchCrew(topic=topic)
-                status.write("🕵️ Iniciando proceso jerárquico...")
+        def background_job(topic, ctx):
+            agent_logic.attach_thread_context(ctx)
+            
+            def step_callback(step):
+                # Logic to extract thought and log it
+                current_role = None
+                if hasattr(step, 'agent'):
+                    current_role = getattr(step.agent, 'role', str(step.agent))
+                role_key = agent_logic.detect_agent_role(step, current_role)
                 
-                result = crew.run(step_callback=step_callback)
+                if hasattr(step, 'thought') and step.thought:
+                    display_name = agent_logic.get_agent_display_name(role_key)
+                    executor.logs.put(f"💭 **{display_name}**: {step.thought[:150]}...")
 
-                components.render_agent_visuals(agent_flow_placeholder, None)
-                status.update(label="✅ Investigación completada!", state="complete", expanded=False)
-                
-                report_content = str(result)
-                if "user" in st.session_state:
-                    ResearchRepository.save_research(st.session_state["user"].id, topic, report_content)
-                    st.toast("✅ Reporte guardado en la nube")
-                saved_path = save_local_report(topic, report_content)
-                st.toast(f"Reporte local: {saved_path}")
-                st.session_state["current_report"] = report_content
-                st.session_state["current_topic"] = topic
+            crew = ResearchCrew(topic=topic)
+            return crew.run(step_callback=step_callback)
 
-            except Exception as e:
-                status.update(label="❌ Error crítico", state="error")
-                st.error(f"Detalle del error: {str(e)}")
+        executor.submit(background_job, topic, st_ctx)
+        st.rerun()
+
+    # Display Status and Logs
+    if executor.is_running:
+        with st.status("🛠️ Agentes trabajando...", expanded=True) as status:
+            # Display existing logs
+            logs = executor.get_logs()
+            for log in logs:
+                st.write(log)
+            
+            # Keep polling
+            time.sleep(1)
+            st.rerun()
+            
+    # Check for result
+    result = executor.check_status()
+    if result and not executor.is_running:
+        if isinstance(result, str) and result.startswith("Error"):
+             st.error(result)
+        else:
+            st.success("✅ Investigación completada!")
+            report_content = str(result)
+            
+            # Save logic (moved from inside the try/except block)
+            if "user" in st.session_state:
+                ResearchRepository.save_research(st.session_state["user"].id, topic, report_content)
+                st.toast("✅ Reporte guardado en la nube")
+            
+            saved_path = save_local_report(topic, report_content)
+            st.toast(f"Reporte local: {saved_path}")
+            st.session_state["current_report"] = report_content
+            st.session_state["current_topic"] = topic
 
     if "current_report" in st.session_state:
         components.render_final_report(

@@ -1,28 +1,33 @@
--- Tabla para almacenar los perfiles de usuario y sus límites
-CREATE TABLE IF NOT EXISTS public.users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email TEXT UNIQUE NOT NULL,
-    name TEXT,
-    subscription_tier TEXT DEFAULT 'free',
-    research_credits INTEGER DEFAULT 5,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+-- Create a table for public profiles
+create table if not exists public.users (
+  id uuid references auth.users not null primary key,
+  email text,
+  name text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Tabla para almacenar el historial de investigaciones
-CREATE TABLE IF NOT EXISTS public.researches (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
-    topic TEXT NOT NULL,
-    status TEXT DEFAULT 'completed',
-    result TEXT, -- El reporte en formato Markdown
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- Set up Row Level Security (RLS)
+alter table public.users enable row level security;
 
--- Habilitar Row Level Security (RLS) para mayor seguridad
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.researches ENABLE ROW LEVEL SECURITY;
+create policy "Public profiles are viewable by everyone." on public.users
+  for select using (true);
 
--- Crear políticas básicas (simplificadas para desarrollo)
-CREATE POLICY "Users can see their own profile" ON public.users FOR SELECT USING (true);
-CREATE POLICY "Users can see their own researches" ON public.researches FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own researches" ON public.researches FOR INSERT WITH CHECK (true);
+create policy "Users can insert their own profile." on public.users
+  for insert with check (auth.uid() = id);
+
+create policy "Users can update own profile." on public.users
+  for update using (auth.uid() = id);
+
+-- Trigger to handle new user creation
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.users (id, email, name)
+  values (new.id, new.email, new.raw_user_meta_data->>'full_name');
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create or replace trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();

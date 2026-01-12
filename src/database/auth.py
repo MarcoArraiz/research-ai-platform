@@ -1,6 +1,11 @@
+import logging
 from typing import Optional, Dict, Any
 from src.database.supabase_client import supabase
 import streamlit as st
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class AuthService:
     """Servicio para manejar la autenticación con Supabase."""
@@ -10,6 +15,7 @@ class AuthService:
         """Registra un nuevo usuario."""
         try:
             # 1. Crear usuario en Supabase Auth
+            # La creación del registro en la tabla 'public.users' se maneja vía Trigger en Supabase
             response = supabase.auth.sign_up({
                 "email": email,
                 "password": password,
@@ -21,16 +27,11 @@ class AuthService:
             })
             
             if response.user:
-                # 2. Crear entrada en nuestra tabla de users (el trigger de Supabase podría automatizar esto, 
-                # pero lo hacemos explícito para asegurar sincronía inicial)
-                supabase.table("users").upsert({
-                    "id": response.user.id,
-                    "email": email,
-                    "name": name
-                }).execute()
-                
+                logger.info(f"Usuario registrado exitosamente: {email}")
+            
             return {"user": response.user, "error": None}
         except Exception as e:
+            logger.error(f"Error en sign_up: {str(e)}")
             return {"user": None, "error": str(e)}
 
     @staticmethod
@@ -41,8 +42,10 @@ class AuthService:
                 "email": email,
                 "password": password
             })
+            logger.info(f"Inicio de sesión exitoso: {email}")
             return {"user": response.user, "session": response.session, "error": None}
         except Exception as e:
+            logger.error(f"Error en sign_in: {str(e)}")
             return {"user": None, "error": str(e)}
 
     @staticmethod
@@ -52,8 +55,9 @@ class AuthService:
             supabase.auth.sign_out()
             if "user" in st.session_state:
                 del st.session_state["user"]
+            logger.info("Sesión cerrada")
         except Exception as e:
-            print(f"Error al cerrar sesión: {str(e)}")
+            logger.error(f"Error al cerrar sesión: {str(e)}")
 
     @staticmethod
     def get_user():

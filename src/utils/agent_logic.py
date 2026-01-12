@@ -9,11 +9,13 @@ def detect_agent_role(step, current_role):
     # 1. Try explicit role from object
     if current_role and str(current_role) != "None":
         role_str = str(current_role).lower()
+        # Normalize role names to match keys in get_agent_display_name
         if "research" in role_str or "investigador" in role_str: return "Senior Research Assistant"
         if "analyst" in role_str or "analista" in role_str: return "Tech Strategy Analyst"
         if "writer" in role_str or "escritor" in role_str or "writing" in role_str: return "Senior Technical Writer"
         if "critic" in role_str or "critico" in role_str: return "Editorial Critic"
         if "coordinator" in role_str or "manager" in role_str: return "Research Project Coordinator"
+        return str(current_role) # Fallback to returning the role string itself if no match
 
     # 2. Analyze thought text if role is ambiguous
     thought_text = getattr(step, 'thought', '').lower()
