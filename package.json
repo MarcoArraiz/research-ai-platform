@@ -1,0 +1,22 @@
+{
+  "name": "research-ai-platform",
+  "version": "1.0.0",
+  "description": "Plataforma SaaS de investigación de mercado impulsada por agentes de Inteligencia Artificial colectivos (CrewAI). Genera reportes exhaustivos en minutos en lugar de semanas.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github-leonelpb:MarcoArraiz/research-ai-platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@angular/cli": "^21.0.5"
+  }
+}

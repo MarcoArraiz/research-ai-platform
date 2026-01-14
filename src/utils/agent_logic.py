@@ -1,5 +1,8 @@
 import threading
-from streamlit.runtime.scriptrunner import add_script_run_ctx
+try:
+    from streamlit.runtime.scriptrunner import add_script_run_ctx
+except ImportError:
+    add_script_run_ctx = None
 
 def detect_agent_role(step, current_role):
     """

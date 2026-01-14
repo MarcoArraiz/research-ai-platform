@@ -1,7 +1,6 @@
 crewai
 langchain
 langchain-openai
-streamlit
 python-dotenv
 requests
 beautifulsoup4
@@ -10,3 +9,6 @@ pydantic
 crewai-tools
 supabase
 libsass
+fastapi
+uvicorn
+python-multipart
