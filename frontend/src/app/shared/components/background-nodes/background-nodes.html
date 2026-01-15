@@ -1,0 +1,11 @@
+<svg class="ui-nodes-bg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice">
+    <g class="connections">
+        <line *ngFor="let link of links" [attr.x1]="nodes[link.from].x" [attr.y1]="nodes[link.from].y"
+            [attr.x2]="nodes[link.to].x" [attr.y2]="nodes[link.to].y" class="ui-node-line" />
+    </g>
+
+    <g class="nodes">
+        <circle *ngFor="let node of nodes; let i = index" class="ui-node" [attr.cx]="node.x" [attr.cy]="node.y"
+            [attr.r]="node.r" (mouseenter)="onHover(i)" (mouseleave)="onLeave()" />
+    </g>
+</svg>

@@ -1,0 +1,420 @@
+:root {
+    /* Colors */
+    --color-bg-main: #f4efe9;
+    --color-text-primary: #1f2933;
+    --color-text-muted: #6b7280;
+
+    --color-accent-coral: #e76f51;
+    --color-accent-coral-soft: rgba(231, 111, 81, 0.85);
+
+    --color-accent-teal: #2a9d8f;
+    --color-accent-teal-dark: #1f7a70;
+
+    --color-glass-bg: rgba(255, 255, 255, 0.35);
+    --color-glass-border: rgba(255, 255, 255, 0.25);
+
+    /* Spacing */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2.5rem;
+
+    /* Radius */
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+
+    /* Shadow */
+    --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================
+   BASE
+========================= */
+
+body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--color-bg-main);
+    color: var(--color-text-primary);
+}
+
+.ui-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-xl);
+}
+
+
+.ui-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.ui-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+}
+
+/* =========================
+   CARD
+========================= */
+
+.ui-card {
+    @extend .ui-glass;
+    display: block;
+}
+
+.ui-card-header {
+    padding: var(--space-lg) var(--space-lg) var(--space-md);
+}
+
+.ui-card-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.ui-card-content {
+    padding: var(--space-lg);
+}
+
+/* Variants */
+.ui-card-default {
+    color: var(--color-text-primary);
+}
+
+.ui-card-dark {
+    background: linear-gradient(180deg,
+            var(--color-accent-teal),
+            var(--color-accent-teal-dark));
+    color: white;
+}
+
+/* =========================
+   GLASS PANELS
+========================= */
+
+.ui-glass {
+    background: var(--color-glass-bg);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-glass-border);
+    box-shadow: var(--shadow-soft);
+    padding: var(--space-lg);
+}
+
+/* =========================
+   TYPOGRAPHY
+========================= */
+
+.ui-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--color-accent-coral);
+}
+
+.ui-subtitle {
+    font-size: 1.25rem;
+    color: var(--color-accent-teal-dark);
+}
+
+.ui-text-muted {
+    color: var(--color-text-muted);
+}
+
+.ui-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.ui-button {
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.ui-button-primary {
+    background: linear-gradient(135deg,
+            var(--color-accent-teal),
+            var(--color-accent-coral));
+    color: white;
+}
+
+.ui-button-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================
+   BUTTON SIZES
+========================= */
+
+.ui-button-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+}
+
+.ui-button-md {
+    padding: 0.6rem 1.25rem;
+    font-size: 1rem;
+    border-radius: var(--radius-md);
+}
+
+.ui-button-lg {
+    padding: 0.85rem 1.75rem;
+    font-size: 1.125rem;
+    border-radius: var(--radius-lg);
+}
+
+
+/* =========================
+   INPUTS
+========================= */
+
+.ui-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    border: none;
+    outline: none;
+    background: rgba(42, 157, 143, 0.25);
+    color: white;
+}
+
+.ui-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* =========================
+   FIELD
+========================= */
+.ui-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    width: 100%;
+}
+
+.ui-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    margin-left: 0.25rem;
+}
+
+/* =========================
+   REPORT PANEL
+========================= */
+
+.ui-report {
+    background: linear-gradient(180deg,
+            var(--color-accent-teal),
+            var(--color-accent-teal-dark));
+    color: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+}
+
+.ui-report-list {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-md) 0 0 0;
+}
+
+.ui-report-list li {
+    margin-bottom: var(--space-sm);
+    opacity: 0.9;
+}
+
+/* =========================
+   MARKDOWN
+========================= */
+.ui-markdown {
+    color: var(--color-text-primary);
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+.ui-markdown h1,
+.ui-markdown h2,
+.ui-markdown h3 {
+    color: var(--color-accent-teal-dark);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.ui-markdown h1 {
+    font-size: 2em;
+    border-bottom: 1px solid var(--color-glass-border);
+    padding-bottom: 0.3em;
+}
+
+.ui-markdown h2 {
+    font-size: 1.5em;
+}
+
+.ui-markdown h3 {
+    font-size: 1.25em;
+}
+
+.ui-markdown p {
+    margin-bottom: 1em;
+}
+
+.ui-markdown ul,
+.ui-markdown ol {
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+}
+
+.ui-markdown li {
+    margin-bottom: 0.25em;
+}
+
+.ui-markdown strong {
+    color: var(--color-accent-coral);
+}
+
+.ui-markdown code {
+    background: rgba(42, 157, 143, 0.15);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9em;
+}
+
+.ui-markdown pre {
+    background: #000;
+    padding: 1em;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin-bottom: 1em;
+}
+
+.ui-markdown pre code {
+    background: transparent;
+    padding: 0;
+    color: #e2e8f0;
+}
+
+.ui-markdown blockquote {
+    border-left: 4px solid var(--color-accent-coral);
+    padding-left: 1rem;
+    margin-left: 0;
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.ui-markdown a {
+    color: var(--color-accent-coral);
+    text-decoration: underline;
+}
+
+/* =========================
+   LOGS
+========================= */
+
+.ui-center-text {
+    text-align: center;
+}
+
+.ui-end {
+    justify-content: flex-end;
+}
+
+.ui-log-panel {
+    height: 300px;
+    overflow-y: auto;
+    background: #0b1120;
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ui-log-entry {
+    color: var(--color-text-muted);
+    border-left: 2px solid var(--color-glass-border);
+    padding-left: var(--space-sm);
+    line-height: 1.5;
+}
+
+.ui-log-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-style: italic;
+    color: var(--color-accent-coral);
+}
+
+.ui-spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+.ui-text-accent {
+    color: var(--color-accent-coral);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =========================
+   NODES BACKGROUND
+========================= */
+
+.ui-nodes-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 40vh;
+    pointer-events: auto;
+
+}
+
+/* Nodes */
+.ui-node {
+    fill: #000;
+    transition:
+        transform 1s ease,
+        r 1s ease;
+    transform-origin: center;
+}
+
+
+/* Lines */
+.ui-node-line {
+    stroke: rgba(0, 0, 0, 0.4);
+    stroke-width: 1;
+    transition: transform 1.5s ease;
+}
+
+.ui-node-hovered {
+    r: 8;
+}
+
+.ui-node-line-active {
+    transform: translate(2px);
+    stroke-width: 1.5;
+}
